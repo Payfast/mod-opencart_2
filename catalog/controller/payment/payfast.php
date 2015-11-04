@@ -109,6 +109,7 @@ class ControllerPaymentPayFast extends Controller
 
             $securityHash = md5( $secureString );
             $data[ 'signature' ] = $securityHash;
+            $data[ 'user_agent' ] = 'OpenCart 2.x';
 
             if ( file_exists( DIR_TEMPLATE . $this->config->get( 'config_template' ) . '/template/payment/payfast.tpl' ) )
             {
