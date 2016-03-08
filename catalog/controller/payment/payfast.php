@@ -118,7 +118,7 @@ class ControllerPaymentPayFast extends Controller
             }
             else
             {
-                return $this->load->view( 'default/template/payment/payfast.tpl', $data );
+                return $this->load->view( 'payment/payfast.tpl', $data );
             }
         }
     }
