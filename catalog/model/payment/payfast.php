@@ -38,7 +38,7 @@ class ModelPaymentPayFast extends Model {
             $status = false;
         }   
     
-        $currencies = ['ZAR'];
+        $currencies = array('ZAR');
         
         if (!in_array(strtoupper($this->session->data['currency']), $currencies)) {
             $status = false;
