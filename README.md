@@ -17,6 +17,20 @@ License for more details.
 Please see http://www.opensource.org/licenses/ for a copy of the GNU Lesser
 General Public License.
 
+INTEGRATION:
+1. Unzip the module to a temporary location on your computer
+2. Copy the “admin” and “catalog” folders in the archive to your base “OpenCart” folder
+- This should NOT overwrite any existing files or folders and merely supplement them with the PayFast files
+- This is however, dependent on the FTPprogram you use
+- If you are concerned about this, rather copy the individual files across as per instructions below
+3. Login to the admin section of your OpenCart installation
+4. Navigate to the Extensions > Payments page
+5. Scroll down to the PayFast.co.za payment method and click the “Install” button to install the module
+6. Once the module is installed, click on “Edit” button.
+7. The PayFast options will then be shown, select the payment status for “completed”, “failed” and “pending” payments, select the sandbox mode, enable the payment module and click “Save”.
+8. The module is now ready to be tested with the Sandbox. To test with the sandbox, use the following login credentials when redirected to the PayFast site:
+- Username: sbtu01@payfast.co.za
+- Password: clientpass
 
 ******************************************************************************
 *                                                                            *
