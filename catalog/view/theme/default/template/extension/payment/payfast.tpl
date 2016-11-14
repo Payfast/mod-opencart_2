@@ -40,6 +40,20 @@
   <input type="hidden" name="notify_url" value="<?php echo $notify_url; ?>" />
   <input type="hidden" name="cancel_url" value="<?php echo $cancel_url; ?>" />
   <input type="hidden" name="custom_str1" value="<?php echo $custom_str1; ?>" />
+
+  <?php if ($recurring) { ?>
+  <input type="hidden" name="custom_str2" value="<?php echo $custom_str2; ?>" />
+  <input type="hidden" name="custom_str3" value="<?php echo $custom_str3; ?>" />
+  <input type="hidden" name="custom_str4" value="<?php echo $custom_str4; ?>" />
+  <input type="hidden" name="custom_str5" value="<?php echo $custom_str5; ?>" />
+  <input type="hidden" name="subscription_type" value="1" />
+  <input type="hidden" name="billing_date" value="<?php echo date('Y-m-d'); ?>" />
+  <input type="hidden" name="recurring_amount" value="<?php echo $recurring_amount; ?>" />
+  <input type="hidden" name="frequency" value="<?php echo $frequency; ?>" />
+  <input type="hidden" name="cycles" value="<?php echo $cycles; ?>" />
+  <?php } ?>
+
+
   <input type="hidden" name="m_payment_id" value="<?php echo $m_payment_id; ?>" />
   <input type="hidden" name="signature" value="<?php echo $signature; ?>" />
 <div class="buttons">

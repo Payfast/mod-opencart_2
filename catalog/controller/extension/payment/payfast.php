@@ -58,6 +58,41 @@ class ControllerExtensionPaymentPayFast extends Controller
         {
             $order_info[ 'currency_code' ] = 'ZAR';
 
+            $data['recurring'] = false;
+            foreach ( $this->cart->getProducts() as $product )
+            {
+                if ( $product['recurring'] )
+                {
+                    $data['recurring'] = true;
+
+                    if ( $product['recurring']['frequency'] == 'month' )
+                    {
+                        $frequency = 3;
+                    }
+
+                    if ( $product['recurring']['frequency'] == 'year' )
+                    {
+                        $frequency = 6;
+                    }
+
+                    $cycles = $product['recurring']['duration'];
+
+                    $recurring_amount = $product['recurring']['price'];
+
+                    $custom_str3 = $product['recurring']['recurring_id'];
+                    
+                    $custom_str4 = $this->session->data[ 'order_id' ];
+                    
+                    $custom_str5 = $product['product_id'];
+
+                    $this->db->query("INSERT INTO `" . DB_PREFIX . "order_recurring` SET `order_id` = '" . $this->session->data[ 'order_id' ] . "', `reference` = '" . $this->session->data[ 'order_id' ] . "', `product_id` = '" . $product['product_id'] . "',
+                     `product_name` = '" . $product['name'] ."', `product_quantity` = '" . $product['quantity'] . "', `recurring_id` = '" . $product['recurring']['recurring_id'] . "',
+                      `recurring_name` = '" . $product['recurring']['name'] . "', `recurring_description` = '" . $product['recurring']['name'] . "',
+                      `recurring_frequency` = '" . $frequency . "', `recurring_cycle` = '1', `recurring_duration` = '" . $cycles . "',
+                      `recurring_price` = '" . $recurring_amount . "', `status` = '6', `date_added` = NOW()");
+                }
+            }
+
             if ( !$this->config->get( 'payfast_sandbox' ) )
             {
                 $merchant_id = $this->config->get( 'payfast_merchant_id' );
@@ -82,7 +117,6 @@ class ControllerExtensionPaymentPayFast extends Controller
             $item_description = $this->language->get( 'text_sale_description' );
             $custom_str1 = $this->session->data[ 'order_id' ];
 
-
             $payArray = array(
                 'merchant_id' => $merchant_id, 'merchant_key' => $merchant_key, 'return_url' => $return_url,
                 'cancel_url' => $cancel_url, 'notify_url' => $notify_url, 'name_first' => $name_first,
@@ -90,6 +124,20 @@ class ControllerExtensionPaymentPayFast extends Controller
                 'amount' => $amount, 'item_name' => html_entity_decode( $item_name ),
                 'item_description' => html_entity_decode( $item_description ), 'custom_str1' => $custom_str1
             );
+
+            if ( $data['recurring'] )
+            {
+                $payArray['custom_str2'] = date( 'Y-m-d' );
+                $payArray['custom_str3'] = $custom_str3;
+                $payArray['custom_str4'] = $custom_str4;
+                $payArray['custom_str5'] = $custom_str5;
+                $payArray['subscription_type'] = '1';
+                $payArray['billing_date'] = date( 'Y-m-d' );
+                $payArray['recurring_amount'] = $recurring_amount;
+                $payArray['frequency'] = $frequency;
+                $payArray['cycles'] = $cycles;
+            }
+
             $secureString = '';
             foreach ( $payArray as $k => $v )
             {
@@ -108,7 +156,7 @@ class ControllerExtensionPaymentPayFast extends Controller
 
             $securityHash = md5( $secureString );
             $data[ 'signature' ] = $securityHash;
-            $data[ 'user_agent' ] = 'OpenCart 2.3.x';
+            $data[ 'user_agent' ] = 'OpenCart 2.3';
 
             if ( file_exists( DIR_TEMPLATE . $this->config->get( 'config_template' ) . '/template/extension/payment/payfast.tpl' ) )
             {
@@ -231,11 +279,11 @@ class ControllerExtensionPaymentPayFast extends Controller
 
             $pfValid = pfValidData( $this->pfHost, $pfParamString );
 
-//            if ( !$pfValid )
-//            {
-//                $pfError = true;
-//                $pfErrMsg = PF_ERR_BAD_ACCESS;
-//            }
+            if ( !$pfValid )
+            {
+                $pfError = true;
+                $pfErrMsg = PF_ERR_BAD_ACCESS;
+            }
         }
 
         //// Check data against internal order
@@ -243,7 +291,19 @@ class ControllerExtensionPaymentPayFast extends Controller
         {
             pflog( 'Check data against internal order' );
 
-            $amount = $this->currency->format( $order_info[ 'total' ], 'ZAR', '', false );
+
+
+            if ( empty( $pfData['token'] ) || strtotime( $pfData['custom_str2'] ) <= strtotime( gmdate( 'Y-m-d' ). '+ 2 days' ) )
+            {
+                $amount = $this->currency->format( $order_info['total'], 'ZAR', '', false );
+            }
+
+            if ( !empty( $pfData['token'] ) && strtotime( $pfData['custom_str2'] ) > strtotime( gmdate( 'Y-m-d' ). '+ 2 days' ) )
+            {
+                $recurring = $this->getOrderRecurringByReference( $pfData['m_payment_id'] );
+                $amount = $this->currency->format( $recurring['recurring_price'], 'ZAR', '', false );
+            }
+
             // Check order amount
             if ( !pfAmountsEqual( $pfData[ 'amount_gross' ], $amount ) )
             {
@@ -260,45 +320,66 @@ class ControllerExtensionPaymentPayFast extends Controller
 
 
             $transaction_id = $pfData[ 'pf_payment_id' ];
-
-            switch ( $pfData[ 'payment_status' ] )
+            
+            
+            if ( empty( $pfData['token'] ) ) 
             {
-                case 'COMPLETE':
-                    pflog( '- Complete' );
-
-                    // Update the purchase status
-                    $order_status_id = $this->config->get( 'payfast_completed_status_id' );
-
-                    break;
-
-                case 'FAILED':
-                    pflog( '- Failed' );
-
-                    // If payment fails, delete the purchase log
-                    $order_status_id = $this->config->get( 'payfast_failed_status_id' );
-
-                    break;
-
-                case 'PENDING':
-                    pflog( '- Pending' );
-
-                    // Need to wait for "Completed" before processing
-                    break;
-
-                default:
-                    // If unknown status, do nothing (safest course of action)
-                    break;
+                switch ($pfData['payment_status']) {
+                    case 'COMPLETE':
+                        pflog('- Complete');
+    
+                        // Update the purchase status
+                        $order_status_id = $this->config->get('payfast_completed_status_id');
+    
+                        break;
+    
+                    case 'FAILED':
+                        pflog('- Failed');
+    
+                        // If payment fails, delete the purchase log
+                        $order_status_id = $this->config->get('payfast_failed_status_id');
+    
+                        break;
+    
+                    case 'PENDING':
+                        pflog('- Pending');
+    
+                        // Need to wait for "Completed" before processing
+                        break;
+    
+                    default:
+                        // If unknown status, do nothing (safest course of action)
+                        break;
+                }
+                if (!$order_info['order_status_id']) {
+                    $this->model_checkout_order->addOrderHistory($order_id, $order_status_id);
+    
+                } else {
+                    $this->model_checkout_order->addOrderHistory($order_id, $order_status_id);
+                }
+                return true;
             }
-            if ( !$order_info[ 'order_status_id' ] )
+            
+            if ( isset( $pfData['token'] ) && $pfData['payment_status'] == 'COMPLETE' )
             {
-                $this->model_checkout_order->addOrderHistory( $order_id, $order_status_id );
+                $recurring = $this->getOrderRecurringByReference($pfData['m_payment_id']);
 
+                $this->db->query("INSERT INTO `" . DB_PREFIX . "order_recurring_transaction` SET `order_recurring_id` = '" . $recurring['order_recurring_id'] . "', `date_added` = NOW(), `amount` = '" . $pfData['amount_gross'] . "', `type` = '1'");
+                
+                //update recurring order status to active
+                $this->db->query("UPDATE `" . DB_PREFIX . "order_recurring` SET `status` = 1 WHERE `order_id` = '" . $pfData['custom_str4'] . "' AND `product_id` = '" . $pfData['custom_str5'] . "'");
+
+                $order_status_id = $this->config->get('payfast_completed_status_id');
+                if ( !$order_info['order_status_id'] )
+                {
+                    $this->model_checkout_order->addOrderHistory( $order_id, $order_status_id );
+
+                } else
+                {
+                    $this->model_checkout_order->addOrderHistory( $order_id, $order_status_id );
+                }
+                return true;
             }
-            else
-            {
-                $this->model_checkout_order->addOrderHistory( $order_id, $order_status_id );
-            }
-            return true;
         }
         else
         {
@@ -306,6 +387,24 @@ class ControllerExtensionPaymentPayFast extends Controller
             pflog( "Errors:\n" . print_r( $pfErrMsg, true ) );
             return false;
         }
+        
+        if ( $pfData['payment_status'] == 'CANCELLED' )
+        {
+            $recurring = $this->getOrderRecurringByReference($pfData['m_payment_id']);
+
+            $this->db->query("INSERT INTO `" . DB_PREFIX . "order_recurring_transaction` SET `order_recurring_id` = '" . $recurring['order_recurring_id'] . "', `date_added` = NOW(), `type` = '5'");
+
+            //update recurring order status to cancelled
+            $this->db->query("UPDATE `" . DB_PREFIX . "order_recurring` SET `status` = 3 WHERE `order_recurring_id` = '" . $recurring['order_recurring_id'] . "' LIMIT 1");
+
+        }
+    }
+
+    public function getOrderRecurringByReference( $reference )
+    {
+        $query = $this->db->query("SELECT * FROM `" . DB_PREFIX . "order_recurring` WHERE `reference` = '" . $this->db->escape($reference) . "'");
+
+        return $query->row;
     }
 }
 

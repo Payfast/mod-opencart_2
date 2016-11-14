@@ -29,4 +29,6 @@ $_['text_reason']   = 'REASON';
 $_['text_sandbox']  = 'Warning: PayFast is set to work in \'Sandbox Mode\', your account will not be charged. ';
 $_['text_total']    = 'Shipping, Handling, Discounts & Taxes';
 $_['text_sale_description'] = 'Shipping, Handling, Discounts and Taxes Included';
+$_['text_recurring']          = '%s every %s %s';
+$_['text_recurring_item']     = 'Recurring Item';
 ?>

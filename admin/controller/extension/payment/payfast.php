@@ -66,6 +66,9 @@ class ControllerExtensionPaymentPayFast extends Controller {
         $data['entry_passphrase_info'] = $this->language->get('entry_passphrase_info');
         $data['text_edit'] = $this->language->get( 'text_edit' );
 
+
+		$data['entry_recurring_cancel'] = $this->language->get('entry_recurring_cancel');
+
 		$data['button_save'] = $this->language->get('button_save');
 		$data['button_cancel'] = $this->language->get('button_cancel');
 
@@ -178,6 +181,18 @@ class ControllerExtensionPaymentPayFast extends Controller {
 		} else {
 			$data['payfast_cancelled_status_id'] = $this->config->get('payfast_cancelled_status_id');
 		}
+
+
+
+		if (isset($this->request->post['payfast_recurring_cancel'])) {
+			$data['payfast_recurring_cancel'] = $this->request->post['payfast_recurring_cancel'];
+		} else {
+			$data['payfast_recurring_cancel'] = $this->config->get('payfast_recurring_cancel');
+		}
+		
+		
+		
+		
 		
 		$this->load->model('localisation/order_status');
 
@@ -213,18 +228,46 @@ class ControllerExtensionPaymentPayFast extends Controller {
 
 	}
 
-	private function validate() {
-		if (!$this->user->hasPermission('modify', 'extension/payment/payfast')) {
-			$this->error['warning'] = $this->language->get('error_permission');
+	private function validate()
+	{
+		if ( !$this->user->hasPermission( 'modify', 'extension/payment/payfast' ) )
+		{
+			$this->error['warning'] = $this->language->get( 'error_permission' );
 		}
 
 		
 
-		if (!$this->error) {
+		if (!$this->error)
+		{
 			return /*true;*/!$this->error;
-		} else {
+		}
+		else
+		{
 			return false;
 		}
 	}
+
+//	public function recurringCancel() {
+//
+//	}
+
+
+//	public function recurringButtons() {
+//		$this->load->model('sale/recurring');
+//
+//		$recurring = $this->model_sale_recurring->getRecurring($this->request->get['order_recurring_id']);
+//
+//		$data['buttons'] = array();
+//
+//		if ($recurring['status'] == 2 || $recurring['status'] == 3) {
+//			$data['buttons'][] = array(
+//				'text' => $this->language->get('button_cancel_recurring'),
+//				'link' => $this->url->link('extension/payment/payfast/recurringCancel', 'order_recurring_id=' . $this->request->get['order_recurring_id'] . '&token=' . $this->request->get['token'], true)
+//			);
+//		}
+//
+//		return $this->load->view('sale/recurring_button', $data);
+//	}
+
 }
 ?>

@@ -57,4 +57,13 @@ class ModelExtensionPaymentPayFast extends Model {
    
         return $method_data;
     }
+
+    public function recurringPayments()
+    {
+        /*
+         * Used by the checkout to state the module
+         * supports recurring recurrings.
+         */
+        return true;
+    }
 }

@@ -26,7 +26,7 @@
 define( 'PF_SOFTWARE_NAME', 'Opencart' );
 define( 'PF_SOFTWARE_VER', "2.3.0" );
 define( 'PF_MODULE_NAME', 'PayFast-Opencart' );
-define( 'PF_MODULE_VER', '1.3.0' );
+define( 'PF_MODULE_VER', '1.4.0' );
 
 // Features
 // - PHP
@@ -188,7 +188,7 @@ function pfValidData( $pfHost = 'www.payfast.co.za', $pfParamString = '' )
     pflog( 'Params = '. $pfParamString );
 
     // Use cURL (if available)
-    if( false/*defined( 'PF_CURL' )*/ )
+    if( defined( 'PF_CURL' ) )
     {
         // Variable initialization
         $url = 'https://'. $pfHost .'/eng/query/validate';
