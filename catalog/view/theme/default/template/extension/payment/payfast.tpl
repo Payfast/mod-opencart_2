@@ -56,6 +56,7 @@
 
   <input type="hidden" name="m_payment_id" value="<?php echo $m_payment_id; ?>" />
   <input type="hidden" name="signature" value="<?php echo $signature; ?>" />
+  <input type="hidden" name="user_agent" value="<?php echo $user_agent; ?>" />
 <div class="buttons">
    <div class="pull-right">
      <input type="submit" value="<?php echo $button_confirm; ?>" class="btn btn-primary" />
