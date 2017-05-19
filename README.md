@@ -27,9 +27,9 @@ INTEGRATION:
 15. In order to cancel a subscription you can  log into your PayFast account and cancel the subscription.
 
 ******************************************************************************
-*                                                                            *
-*    Please see the URL below for all information concerning this module:    *
-*                                                                            *
-*              https://www.payfast.co.za/shopping-carts/opencart/            *
-*                                                                            *
+
+    Please see the URL below for all information concerning this module:
+
+              https://www.payfast.co.za/shopping-carts/opencart/
+
 ******************************************************************************
